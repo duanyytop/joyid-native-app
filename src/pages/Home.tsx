@@ -1,50 +1,35 @@
-import {IonButton, IonContent, IonHeader, IonIcon, IonPage, IonTitle, IonToolbar} from "@ionic/react";
-import {useEffect, useState} from "react";
-import {checkmarkCircle, phoneLandscape} from "ionicons/icons";
-import {ScreenOrientation} from "../plugins/screen-orientation";
+import {IonContent, IonHeader, IonInput, IonPage, IonToolbar} from "@ionic/react";
+import {useState} from "react";
+import {useQuery} from "react-query";
 
 import "./Home.css";
+import {AuthApi} from "../api";
 
 const Home = () => {
-  const [orientation, setOrientation] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
 
-  useEffect(() => {
-    ScreenOrientation.addListener("screenOrientationChange", (res) => setOrientation(res.type));
-
-    ScreenOrientation.orientation().then((res) => setOrientation(res.type));
-
-    return () => {
-      ScreenOrientation.removeAllListeners();
-    };
-  }, []);
+  useQuery(["username"], async () => await AuthApi.username(username), {
+    enabled: !!username,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+  });
 
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar>
-          <IonTitle>Delivery Confirmation</IonTitle>
+        <IonToolbar color="primary">
+          <h2 style={{width: "100%", textAlign: "center"}}>JoyID</h2>
         </IonToolbar>
       </IonHeader>
-      <IonContent fullscreen>
-        {orientation.includes("portrait") && (
-          <div className="incorrect-orientation">
-            <p>Please turn the device to landscape mode to sign for your delivery.</p>
-            <IonButton onClick={() => ScreenOrientation.lock({orientation: "landscape-primary"})}>
-              <IonIcon icon={phoneLandscape} />
-              Rotate My Device
-            </IonButton>
-          </div>
-        )}
-        {orientation.includes("landscape") && (
-          <div className="ion-padding esign">
-            <span>Please sign to confirm your delivery:</span>
-            <div className="esign-pad" />
-            <IonButton expand="full" onClick={() => ScreenOrientation.unlock()}>
-              <IonIcon icon={checkmarkCircle} />
-              Confirm Signature
-            </IonButton>
-          </div>
-        )}
+      <IonContent>
+        <IonInput
+          label="Username"
+          clearInput={true}
+          labelPlacement="floating"
+          placeholder="Input your username"
+          onIonChange={(e) => setUsername(e.target.value!!.toString())}
+        />
       </IonContent>
     </IonPage>
   );
