@@ -1,37 +1,46 @@
-import {IonContent, IonHeader, IonInput, IonPage, IonToolbar} from "@ionic/react";
+import {Button, Input, useToast} from "@chakra-ui/react";
 import {useState} from "react";
-import {useQuery} from "react-query";
 
 import "./Home.css";
-import {AuthApi} from "../api";
+import {generateRegistryParams} from "../webauthn";
+import {Fido} from "../plugins/fido2";
 
 const Home = () => {
+  const toast = useToast();
   const [username, setUsername] = useState<string>("");
 
-  useQuery(["username"], async () => await AuthApi.username(username), {
-    enabled: !!username,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-  });
+  const register = async () => {
+    if (!username) {
+      toast({
+        title: "Username cannot be empty",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+    const params = generateRegistryParams(username);
+    Fido.addListener("credentialValid", (credential) => {
+      if (credential === "error") {
+        toast({
+          title: "Register fail",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        console.log(JSON.stringify(credential));
+      }
+    });
+    await Fido.register({params});
+  };
 
   return (
-    <IonPage>
-      <IonHeader>
-        <IonToolbar color="primary">
-          <h2 style={{width: "100%", textAlign: "center"}}>JoyID</h2>
-        </IonToolbar>
-      </IonHeader>
-      <IonContent>
-        <IonInput
-          label="Username"
-          clearInput={true}
-          labelPlacement="floating"
-          placeholder="Input your username"
-          onIonChange={(e) => setUsername(e.target.value!!.toString())}
-        />
-      </IonContent>
-    </IonPage>
+    <div className="content">
+      <Input placeholder="Input username" width="280px" onChange={(e) => setUsername(e.target.value!!.toString())} />
+      <Button colorScheme="blue" marginTop="60px" width="120px" onClick={register}>
+        Register
+      </Button>
+    </div>
   );
 };
 

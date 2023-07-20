@@ -4,4 +4,9 @@
     <string name="title_activity_main">JoyID</string>
     <string name="package_name">io.nervina.joyid</string>
     <string name="custom_url_scheme">io.nervina.joyid</string>
+
+    <string name="asset_statements" translatable="false">           [{
+             "include": "https://joyid-app-git-webauthn-nervina.vercel.app/.well-known/assetlinks.json"
+           }]</string>
+    <string name="host" translatable="false">https://joyid-app-git-webauthn-nervina.vercel.app</string>
 </resources>
