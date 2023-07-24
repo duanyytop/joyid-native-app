@@ -5,7 +5,7 @@ export const generateRegistryParams = (_username: string): string => {
     challenge: "5cz-1QcjEjzc-MnsRYLOmcXj-umEJO_1Sbj2lUNt2cQ",
     rp: {
       name: "JoyID App",
-      id: "https://joyid-app-git-webauthn-nervina.vercel.app",
+      id: "https://joyid.dev",
     },
     user: {
       id: "RqhH1qaRGL1VS2vLI-xHTOpra7Ycz6FtI35yhzuOEeE",

@@ -1,8 +1,8 @@
-package io.nervina.joyid.plugins.fido2
+package dev.joyid.plugins.fido2
 
 import android.app.Activity
-import android.app.PendingIntent
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,8 +11,9 @@ import com.google.android.gms.fido.Fido
 import com.google.android.gms.fido.fido2.Fido2ApiClient
 import com.google.android.gms.fido.fido2.api.common.AuthenticatorErrorResponse
 import com.google.android.gms.fido.fido2.api.common.PublicKeyCredential
-import com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialCreationOptions
+import com.google.android.gms.tasks.Tasks
 import com.google.gson.Gson
+import kotlin.Exception
 
 
 class FidoInstance(private val activity: AppCompatActivity) {
@@ -28,19 +29,16 @@ class FidoInstance(private val activity: AppCompatActivity) {
     }
 
     fun register(params: String?) {
-        val options = gson.fromJson(params, PublicKeyCredentialCreationOptions::class.java)
         this.fido2ApiClient?.let { client ->
-            val task = client.getRegisterPendingIntent(options)
-            task.addOnCompleteListener {
-                if (it.isSuccessful) {
-                    val intent = it.result
-                    Log.i("FIDO", intent.toString())
-                    createCredentialIntentLauncher.launch(
-                        IntentSenderRequest.Builder(intent).build()
-                    )
-                } else {
-                    Log.e("FIDO", "fido exception", it.exception)
-                }
+            try {
+                val options = parsePublicKeyCredentialCreationOptions(params!!)
+                val task = client.getRegisterPendingIntent(options)
+                val intent = Tasks.await(task)
+                createCredentialIntentLauncher.launch(
+                    IntentSenderRequest.Builder(intent).build()
+                )
+            } catch (e: Exception) {
+                Log.e("FIDO", "fido exception", e)
             }
         }
     }
@@ -57,8 +55,11 @@ class FidoInstance(private val activity: AppCompatActivity) {
             }
             else -> {
                 val credential = PublicKeyCredential.deserializeFromBytes(bytes)
-                if (credential.response !is AuthenticatorErrorResponse) {
+                if (credential.response is AuthenticatorErrorResponse) {
+                    Toast.makeText(activity, (credential.response as AuthenticatorErrorResponse).errorMessage!!, Toast.LENGTH_LONG).show()
+                } else {
                     credentialRet = gson.toJson(credential)
+                    Toast.makeText(activity, credentialRet!!, Toast.LENGTH_LONG).show()
                 }
             }
         }

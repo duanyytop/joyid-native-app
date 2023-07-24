@@ -1,24 +1,38 @@
-package io.nervina.joyid.plugins.fido2
+package dev.joyid.plugins.fido2
 
 import android.content.res.Configuration
-import androidx.lifecycle.lifecycleScope
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
+import com.getcapacitor.annotation.Permission
 import com.google.android.gms.fido.Fido
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import android.Manifest;
 
-
-@CapacitorPlugin(name = "Fido")
+@CapacitorPlugin(
+    name = "Fido",
+    permissions = [
+        Permission(
+            alias = "internet",
+            strings = [ Manifest.permission.INTERNET, Manifest.permission.ACCESS_NETWORK_STATE ]
+        )
+    ]
+)
 class FidoPlugin : Plugin() {
-
     private var fido: FidoInstance? = null
     override fun load() {
         fido = FidoInstance(activity)
+    }
+
+    override fun handleOnResume() {
+        super.handleOnResume()
         fido?.setFido2ApiClient(Fido.getFido2ApiClient(bridge.activity))
+    }
+
+    override fun handleOnPause() {
+        super.handleOnPause()
+        fido?.setFido2ApiClient(null)
     }
 
     @PluginMethod
